@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "db:seed": "tsx scripts/seed-users.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
