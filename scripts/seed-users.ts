@@ -6,10 +6,8 @@ import path from "path"
 const dbPath = path.join(process.cwd(), "sdoorbell.db")
 const db = new Database(dbPath)
 
-// Crear tabla de usuarios
 db.exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, familia TEXT NOT NULL, direccion TEXT NOT NULL, email TEXT NOT NULL, localidad TEXT NOT NULL, codigo_postal TEXT NOT NULL, foto_fachada TEXT, qr_code TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)")
 
-// Crear tabla de visitas
 db.exec("CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, visitor_name TEXT NOT NULL, visitor_phone TEXT NOT NULL, visitor_reason TEXT NOT NULL, visit_time DATETIME DEFAULT CURRENT_TIMESTAMP, status TEXT DEFAULT 'pending', FOREIGN KEY (user_id) REFERENCES users (id))")
 
 const users = [
@@ -25,16 +23,19 @@ const users = [
   { username: "familia.torres", password: "Torres2025!", familia: "Torres", direccion: "Calle Pellegrini 901", email: "torres@email.com", localidad: "Santa Fe", codigo_postal: "3000" }
 ]
 
+const baseUrl = process.env.NODE_ENV === "production" 
+  ? "https://fulfilling-commitment-production.up.railway.app"
+  : "http://localhost:3000"
+
 async function seedDatabase() {
   console.log("Iniciando seed de la base de datos...")
 
   for (const user of users) {
     try {
       const hashedPassword = await bcrypt.hash(user.password, 10)
-      const qrCode = await QRCode.toDataURL("https://fulfilling-commitment-production.up.railway.app/visitor?user=" + user.username)
-      
-      const stmt = db.prepare("INSERT OR IGNORE INTO users (username, password, familia, direccion, email, localidad, codigo_postal, qr_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-      stmt.run(user.username, hashedPassword, user.familia, user.direccion, user.email, user.localidad, user.codigo_postal, qrCode)
+      const qrCode = await QRCode.toDataURL(baseUrl + "/visitor?username=" + user.username)
+
+      db.prepare("INSERT OR IGNORE INTO users (username, password, familia, direccion, email, localidad, codigo_postal, qr_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(user.username, hashedPassword, user.familia, user.direccion, user.email, user.localidad, user.codigo_postal, qrCode)
 
       console.log("Usuario creado: " + user.username)
     } catch (error) {

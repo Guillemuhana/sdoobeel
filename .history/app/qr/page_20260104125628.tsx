@@ -15,12 +15,14 @@ export default function QRPage() {
   useEffect(() => {
     const fetchUserAndGenerateQR = async () => {
       try {
-        const storedUsername = localStorage.getItem("username")
-        if (storedUsername) {
-          setUsername(storedUsername)
+        // Get current user from session/cookie
+        const userResponse = await fetch("/api/user/me")
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          setUsername(userData.username)
 
           // Generate QR code URL with username parameter
-          const visitorUrl = `${window.location.origin}/visitor?username=${storedUsername}`
+          const visitorUrl = `${window.location.origin}/visitor?username=${userData.username}`
           const qrDataUrl = await QRCode.toDataURL(visitorUrl, {
             width: 400,
             margin: 2,
@@ -41,18 +43,11 @@ export default function QRPage() {
     fetchUserAndGenerateQR()
   }, [])
 
-  const handleDownloadPNG = async () => {
-    try {
-      const downloadUrl = `/api/qr/generate?username=${username}`
-      const link = document.createElement("a")
-      link.href = downloadUrl
-      link.download = `sdoorbell-qr-${username}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } catch (error) {
-      console.error("[v0] Error downloading QR template:", error)
-    }
+  const handleDownloadPNG = () => {
+    const link = document.createElement("a")
+    link.href = qrCodeDataUrl
+    link.download = `sdoorbell-qr-${username}.png`
+    link.click()
   }
 
   const handleDownloadPDF = () => {
