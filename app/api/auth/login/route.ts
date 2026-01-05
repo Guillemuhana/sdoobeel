@@ -4,23 +4,34 @@ import bcrypt from "bcryptjs"
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json()
+    console.log("[v0] Login attempt started")
+    const body = await request.json()
+    const { username, password } = body
+    
+    console.log("[v0] Username received:", username)
 
     if (!username || !password) {
-      return NextResponse.json({ error: "Username and password are required" }, { status: 400 })
+      console.log("[v0] Missing credentials")
+      return NextResponse.json({ error: "Usuario y contraseña requeridos" }, { status: 400 })
     }
 
+    console.log("[v0] Querying database for user:", username)
     const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username) as any
 
     if (!user) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      console.log("[v0] User not found:", username)
+      return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
 
+    console.log("[v0] User found, comparing passwords")
     const passwordMatch = await bcrypt.compare(password, user.password)
 
     if (!passwordMatch) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      console.log("[v0] Password does not match")
+      return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
+
+    console.log("[v0] Login successful for:", username)
 
     return NextResponse.json({
       success: true,
@@ -36,6 +47,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("[v0] Login error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Error del servidor: " + String(error) }, { status: 500 })
   }
 }
