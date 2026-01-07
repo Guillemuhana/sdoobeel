@@ -84,7 +84,7 @@ export default function QRPage() {
             {qrCodeDataUrl && (
               <div className="relative w-full max-w-md mx-auto">
                 <img src="/images/qr-template.jpg" alt="Placa QR" className="w-full h-auto" />
-                <div className="absolute top-[22%] left-1/2 -translate-x-1/2 w-[55%] aspect-square flex items-center justify-center">
+                <div className="absolute top-[28%] left-1/2 -translate-x-1/2 w-[55%] aspect-square flex items-center justify-center">
                   <img
                     src={qrCodeDataUrl || "/placeholder.svg"}
                     alt="Código QR"

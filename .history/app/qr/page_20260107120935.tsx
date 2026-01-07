@@ -19,6 +19,7 @@ export default function QRPage() {
         if (storedUsername) {
           setUsername(storedUsername)
 
+          // Generate QR code URL with username parameter
           const visitorUrl = `${window.location.origin}/visitor?username=${storedUsername}`
           const qrDataUrl = await QRCode.toDataURL(visitorUrl, {
             width: 400,
@@ -56,6 +57,7 @@ export default function QRPage() {
 
   const handleDownloadPDF = () => {
     console.log("[v0] Downloading PDF")
+    // TODO: Implement PDF download with QR code
   }
 
   if (loading) {
@@ -82,14 +84,10 @@ export default function QRPage() {
         <Card className="p-6">
           <div className="flex flex-col items-center gap-6">
             {qrCodeDataUrl && (
-              <div className="relative w-full max-w-md mx-auto">
+              <div className="relative bg-white rounded-lg shadow-md overflow-hidden max-w-md w-full">
                 <img src="/images/qr-template.jpg" alt="Placa QR" className="w-full h-auto" />
-                <div className="absolute top-[22%] left-1/2 -translate-x-1/2 w-[55%] aspect-square flex items-center justify-center">
-                  <img
-                    src={qrCodeDataUrl || "/placeholder.svg"}
-                    alt="Código QR"
-                    className="w-full h-full object-contain"
-                  />
+                <div className="absolute inset-0 flex items-center justify-center" style={{ paddingTop: "280px" }}>
+                  <img src={qrCodeDataUrl || "/placeholder.svg"} alt="Código QR" className="w-[450px] h-[450px]" />
                 </div>
               </div>
             )}
@@ -97,7 +95,7 @@ export default function QRPage() {
             <div className="flex gap-4 w-full max-w-md">
               <Button onClick={handleDownloadPNG} className="flex-1 gap-2">
                 <Download className="h-4 w-4" />
-                Descargar QR
+                Descargar PNG
               </Button>
               <Button onClick={handleDownloadPDF} variant="outline" className="flex-1 gap-2 bg-transparent">
                 <Download className="h-4 w-4" />

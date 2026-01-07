@@ -19,6 +19,7 @@ export default function QRPage() {
         if (storedUsername) {
           setUsername(storedUsername)
 
+          // Generate QR code URL with username parameter
           const visitorUrl = `${window.location.origin}/visitor?username=${storedUsername}`
           const qrDataUrl = await QRCode.toDataURL(visitorUrl, {
             width: 400,
@@ -56,6 +57,7 @@ export default function QRPage() {
 
   const handleDownloadPDF = () => {
     console.log("[v0] Downloading PDF")
+    // TODO: Implement PDF download with QR code
   }
 
   if (loading) {
@@ -84,7 +86,7 @@ export default function QRPage() {
             {qrCodeDataUrl && (
               <div className="relative w-full max-w-md mx-auto">
                 <img src="/images/qr-template.jpg" alt="Placa QR" className="w-full h-auto" />
-                <div className="absolute top-[22%] left-1/2 -translate-x-1/2 w-[55%] aspect-square flex items-center justify-center">
+                <div className="absolute top-[23%] left-1/2 -translate-x-1/2 w-[37.5%] aspect-square">
                   <img
                     src={qrCodeDataUrl || "/placeholder.svg"}
                     alt="Código QR"

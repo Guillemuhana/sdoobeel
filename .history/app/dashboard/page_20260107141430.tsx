@@ -22,12 +22,18 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userDataFromStorage = localStorage.getItem("user")
-        if (userDataFromStorage) {
-          setUserData(JSON.parse(userDataFromStorage))
+        const token = localStorage.getItem("token")
+        const response = await fetch("/api/user/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setUserData(data.user)
         }
       } catch (error) {
-        console.error("Error loading user:", error)
+        console.error("[v0] Error loading user:", error)
       }
     }
     fetchUserData()
@@ -42,7 +48,8 @@ export default function DashboardPage() {
 
         if (data.visit) {
           if (!previousVisitRef.current && audioRef.current) {
-            audioRef.current.play().catch((e) => console.log("Audio play failed:", e))
+            console.log("[v0] New visitor detected! Playing doorbell sound")
+            audioRef.current.play().catch((e) => console.log("[v0] Audio play failed:", e))
           }
 
           setHasActiveVisit(true)
@@ -54,7 +61,7 @@ export default function DashboardPage() {
           previousVisitRef.current = false
         }
       } catch (error) {
-        console.error("Error checking visits:", error)
+        console.error("[v0] Error checking visits:", error)
       }
     }
 

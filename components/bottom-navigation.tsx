@@ -1,50 +1,41 @@
-"use client"
+﻿"use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { HomeIcon, ClockIcon, QrCodeIcon, ShieldCheckIcon, UserIcon } from "@heroicons/react/24/outline"
-import {
-  HomeIcon as HomeIconSolid,
-  ClockIcon as ClockIconSolid,
-  QrCodeIcon as QrCodeIconSolid,
-  ShieldCheckIcon as ShieldCheckIconSolid,
-  UserIcon as UserIconSolid,
-} from "@heroicons/react/24/solid"
-import { cn } from "@/lib/utils"
-
-const navItems = [
-  { href: "/dashboard", label: "Inicio", Icon: HomeIcon, IconActive: HomeIconSolid },
-  { href: "/visits", label: "Visitas", Icon: ClockIcon, IconActive: ClockIconSolid },
-  { href: "/qr", label: "QR", Icon: QrCodeIcon, IconActive: QrCodeIconSolid },
-  { href: "/security", label: "Seguridad", Icon: ShieldCheckIcon, IconActive: ShieldCheckIconSolid },
-  { href: "/profile", label: "Perfil", Icon: UserIcon, IconActive: UserIconSolid },
-]
+import { usePathname, useRouter } from "next/navigation"
+import { Home, Bell, QrCode, Shield, User } from "lucide-react"
 
 export function BottomNavigation() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const navItems = [
+    { href: "/dashboard", icon: Home, label: "Inicio" },
+    { href: "/visits", icon: Bell, label: "Visitas" },
+    { href: "/qr", icon: QrCode, label: "QR" },
+    { href: "/security", icon: Shield, label: "Seguridad" },
+    { href: "/profile", icon: User, label: "Perfil" },
+  ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card">
-      <div className="container mx-auto">
-        <ul className="grid grid-cols-5 gap-1">
-          {navItems.map(({ href, label, Icon, IconActive }) => {
-            const isActive = pathname === href
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2 text-xs transition-colors",
-                    isActive ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {isActive ? <IconActive className="h-6 w-6" /> : <Icon className="h-6 w-6" />}
-                  <span>{label}</span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <div className="flex justify-around items-center h-16 max-w-4xl mx-auto">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          const Icon = item.icon
+          return (
+            <button
+              key={item.href}
+              onClick={() => router.push(item.href)}
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                isActive ? "text-cyan-600" : "text-gray-500 hover:text-cyan-500"
+              }`}
+            >
+              <Icon className={`w-6 h-6 ${isActive ? "stroke-[2.5]" : ""}`} />
+              <span className={`text-xs mt-1 ${isActive ? "font-semibold" : ""}`}>
+                {item.label}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </nav>
   )
