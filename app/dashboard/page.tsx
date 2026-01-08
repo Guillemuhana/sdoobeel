@@ -36,7 +36,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkForVisits = async () => {
       try {
-        const apiUrl = `${window.location.origin}/api/visit`
+        if (!userData?.username) return
+
+        const apiUrl = `${window.location.origin}/api/visit?username=${userData.username}`
         const response = await fetch(apiUrl)
         const data = await response.json()
 
@@ -61,7 +63,7 @@ export default function DashboardPage() {
     checkForVisits()
     const interval = setInterval(checkForVisits, 2000)
     return () => clearInterval(interval)
-  }, [])
+  }, [userData])
 
   const handleViewVisit = () => {
     router.push("/visit/active")
@@ -69,7 +71,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout title="Dashboard">
-      <div className="p-4 space-y-4">
+      <div className="p-4 pb-20 space-y-4">
         {userData && (
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg">
             <div className="relative h-32 w-full">

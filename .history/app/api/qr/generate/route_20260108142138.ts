@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const qrUrl = `${baseUrl}/visitor?username=${username}`
 
-    const qrDataUrl = await QRCode.toDataURL(qrUrl, {
+    const qrBuffer = await QRCode.toBuffer(qrUrl, {
       width: 500,
       margin: 2,
       color: {
@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ qrCode: qrDataUrl })
+    return new Response(qrBuffer, {
+      headers: {
+        "Content-Type": "image/png",
+        "Content-Disposition": `attachment; filename="sdoorbell-qr-${username}.png"`,
+      },
+    })
   } catch (error) {
     console.error("[v0] Error generating QR:", error)
     return NextResponse.json({ error: "Failed to generate QR code" }, { status: 500 })

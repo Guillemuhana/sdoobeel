@@ -5,76 +5,77 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
+import Image from "next/image"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const { toast } = useToast()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    setLoading(true)
-
-    console.log("[v0] Login attempt for username:", username)
+    setIsLoading(true)
 
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       })
 
       const data = await response.json()
-      console.log("[v0] Login response:", data)
 
-      if (!response.ok) {
-        setError(data.error || "Error al iniciar sesión")
-        setLoading(false)
-        return
+      if (response.ok) {
+        localStorage.setItem("user", JSON.stringify(data.user))
+        toast({
+          title: "Bienvenido",
+          description: `Hola ${data.user.familia}!`,
+        })
+        router.push("/dashboard")
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Credenciales incorrectas",
+          variant: "destructive",
+        })
       }
-
-      localStorage.setItem("username", username)
-      localStorage.setItem("user", JSON.stringify(data.user))
-      
-      router.push("/dashboard")
-    } catch (err) {
-      console.error("[v0] Login error:", err)
-      setError("Error al conectar con el servidor")
-      setLoading(false)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo conectar con el servidor",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50 p-4">
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-blue-500 mb-1">S-doorbell</div>
-              <div className="text-sm text-muted-foreground uppercase tracking-wide">Timbre Digital</div>
-            </div>
+            <Image src="/logo0237.png" alt="S-Doorbell" width={240} height={80} className="h-auto" priority />
           </div>
-          <CardDescription className="text-center">
-            Ingresa con tu usuario y contraseña
-          </CardDescription>
+          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
+          <CardDescription>Ingresa tus credenciales para acceder al panel</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Usuario</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="familia.garcia"
+                placeholder="familia1"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -86,15 +87,11 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="w-full"
               />
             </div>
-            {error && (
-              <div className="text-sm text-red-500 text-center bg-red-50 p-3 rounded">
-                {error}
-              </div>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+            <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700" disabled={isLoading}>
+              {isLoading ? "Ingresando..." : "Ingresar"}
             </Button>
           </form>
         </CardContent>
