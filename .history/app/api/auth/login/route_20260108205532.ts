@@ -17,7 +17,6 @@ export async function POST(request: Request) {
     }
 
     console.log("[v0] User found, checking password")
-    
 
     const passwordMatch = await bcrypt.compare(password, user.password)
 

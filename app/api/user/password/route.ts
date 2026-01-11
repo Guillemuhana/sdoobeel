@@ -1,50 +1,38 @@
-﻿import { NextResponse } from 'next/server'
-import db from '@/lib/db'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+﻿import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
+import bcrypt from "bcryptjs"
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
-
-export async function POST(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    
-    if (!token) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number }
     const body = await request.json()
+    const { username, currentPassword, newPassword } = body
 
-    const { currentPassword, newPassword } = body
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json({ error: 'Faltan datos' }, { status: 400 })
+    if (!username || !currentPassword || !newPassword) {
+      return NextResponse.json(
+        { error: "Username, current password and new password are required" },
+        { status: 400 }
+      )
     }
 
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: 'La contraseña debe tener al menos 8 caracteres' }, { status: 400 })
+    const result = await query("SELECT * FROM users WHERE username = $1", [username])
+
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const user = db.prepare('SELECT password FROM users WHERE id = ?').get(decoded.userId) as { password: string }
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
-    }
+    const user = result.rows[0]
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password)
 
-    const isValid = await bcrypt.compare(currentPassword, user.password)
-    
-    if (!isValid) {
-      return NextResponse.json({ error: 'Contraseña actual incorrecta' }, { status: 401 })
+    if (!isValidPassword) {
+      return NextResponse.json({ error: "Current password is incorrect" }, { status: 401 })
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10)
-    
-    db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedPassword, decoded.userId)
+    await query("UPDATE users SET password = $1 WHERE username = $2", [hashedPassword, username])
 
-    return NextResponse.json({ success: true, message: 'Contraseña actualizada correctamente' })
+    return NextResponse.json({ message: "Password updated successfully" })
   } catch (error) {
-    console.error('[v0] Error changing password:', error)
-    return NextResponse.json({ error: 'Error al cambiar contraseña' }, { status: 500 })
+    console.error("Error updating password:", error)
+    return NextResponse.json({ error: "Failed to update password" }, { status: 500 })
   }
 }
